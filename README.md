@@ -23,8 +23,8 @@ The BBTree data structure resides in heap memory, and is destroyed by the garbag
 
 Because the BBTree is never mutated all library functions that operate on it are Koka `total` -- except that the effect `cmp` is used to pass in a comparison function.
 
-??? A BBTree may be shared across threads safely (though updates in one thread will not be visible
-in another until the modified tree is shared once again).
+~~A BBTree may be shared across threads safely (though updates in one thread will not be visible
+in another until the modified tree is shared once again).~~ This was "apparent" to me, having used tracing GC based tools almost exclusively. Araq pointed out that with reference counting memory managers, tree nodes shares across threads need atomic refcounts, which are not available in Nim's ARC (as of v1.4).
 
 ## BBTree Credits
 
@@ -44,8 +44,12 @@ Department of Applied Mathematics Charles University in Prague, Czech Republic
 
 ## BBTree Details
 
-TODO
+TODO once the build and test procedure is worked out
 
 ### License
 
 MIT. See file LICENSE.
+
+## Notes
+
+For comparison, take a look at [Lobster BBTree](https://github.com/dcurrie/lobster-bbtree) and [Nim BBTree](https://github.com/dcurrie/nim-bbtree)

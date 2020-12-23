@@ -9,7 +9,7 @@ public effect cmp<k> {
 }
 
 public type bbtree<k,v> {
-  Nil
+  BbNil
   Node(left: bbtree<k,v>, right: bbtree<k,v>, size: int, key: k, value: v)
 }
 
@@ -26,7 +26,7 @@ public fun tree-size(tree: bbtree<k,v>): int {
 
 private fun new-leaf(key: k, value: v): bbtree<k,v> {
     // constructor for a leaf node
-    Node(Nil, Nil, 1, key, value)
+    Node(BbNil, BbNil, 1, key, value)
 }
 
 private fun new-node(left: bbtree<k,v>, key: k, value: v, right: bbtree<k,v>): bbtree<k,v> {
@@ -114,7 +114,7 @@ public fun bbt-insert(tree: bbtree<k,v>, key: k, value: v): cmp<k> bbtree<k,v> {
                 Gt -> balance(tl, tk, tv, bbt-insert(tr, key, value))
                 Eq -> new-node(tl, key, value, tr)
             }
-        // Nil -> // identifier Nil is ambiguous!
+        // BbNil -> // identifier BbNil is ambiguous!
         _ -> new-leaf(key, value)
     }
 }
@@ -129,11 +129,81 @@ public fun bbt-lookup(tree: bbtree<k,v>, key: k, default: v): cmp<k> v {
                 Gt -> bbt-lookup(tr, key, default)
                 Eq -> tv
             }
-        // Nil -> // identifier Nil is ambiguous!
+        // BbNil -> // identifier BbNil is ambiguous!
         _ -> default
     }
 }
 
+#private fun extract-min(node: bbtree<k,v>): exn (k, v, bbtree<k,v>) {
+#    match(node) {
+#        Node(BbNil, tr, _, tk, tv) ->
+#            (tk, tv, tr)
+#        Node(tl, tr, _, tk, tv) ->
+#            match(extract-min(tl)) {
+#                (mink, minv, nodep) -> (mink, minv, balance(nodep, tk, tv, tr))
+#            }
+#    }
+#}
+#private fun extract-max(node: bbtree<k,v>): exn (k, v, bbtree<k,v>) {
+#    match(node) {
+#        Node(tl, BbNil, _, tk, tv) ->
+#            (tk, tv, tl)
+#        Node(tl, tr, _, tk, tv) ->
+#            match(extract-max(tr)) {
+#                (maxk, maxv, nodep) -> (maxk, maxv, balance(tl, tk, tv, nodep))
+#            }
+#    }
+#}
+private fun glue(left: bbtree<k,v>, right: bbtree<k,v>): bbtree<k,v> {
+    fun extract-min(node: bbtree<k,v>): (k, v, bbtree<k,v>) {
+        match(node) {
+            Node(BbNil, tr, _, tk, tv) ->
+                (tk, tv, tr)
+            Node(tl, tr, _, tk, tv) ->
+                match(extract-min(tl)) {
+                    (mink, minv, nodep) -> (mink, minv, balance(nodep, tk, tv, tr))
+                }
+        }
+    }
+    fun extract-max(node: bbtree<k,v>): (k, v, bbtree<k,v>) {
+        match(node) {
+            Node(tl, BbNil, _, tk, tv) ->
+                (tk, tv, tl)
+            Node(tl, tr, _, tk, tv) ->
+                match(extract-max(tr)) {
+                    (maxk, maxv, nodep) -> (maxk, maxv, balance(tl, tk, tv, nodep))
+                }
+        }
+    }
+    match (left, right) {
+        (l, BbNil) -> l
+        (BbNil, r) -> r
+        _ ->
+            if (node-size(left) > node-size(right)) {
+                match(extract-max(left)) {
+                    (maxk, maxv, leftp) -> new-node(leftp, maxk, maxv, right)
+                }
+            }
+            else {
+                match(extract-min(right)) {
+                    (mink, minv, rightp) -> new-node(left, mink, minv, rightp)
+                }
+            }
+    }
+}
+
+public fun bbt-delete(tree: bbtree<k,v>, key: k): cmp<k> bbtree<k,v> {
+    match(tree) {
+        Node(tl, tr, _, tk, tv) ->
+            match(cmp(key, tk)) {
+                Lt -> balance(bbt-delete(tl, key), tk, tv, tr)
+                Gt -> balance(tl, tk, tv, bbt-delete(tr, key))
+                Eq -> glue(tl, tr)
+            }
+        // BbNil -> // identifier BbNil is ambiguous!
+        _ -> tree
+    }
+}
 
 
 // #############################################################################
