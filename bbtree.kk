@@ -177,6 +177,67 @@ public fun bbt-delete(tree: bbtree<k,v>, key: k): cmp<k> bbtree<k,v> {
   }
 }
 
+// ##### iterators #####
+
+public struct keyval<k,v> {
+  key: k
+  value: v
+}
+
+public effect yieldkv<k,v> {
+  control yield(kv: keyval<k,v>) : bool
+}
+
+// `inorder` traversal of the tree `tree`, i.e., from smallest to largest key.
+// Use of an explicit stack faciliates early exit when `yield` returns false.
+//
+public fun inorder(tree: bbtree<k,v>) : <div,yieldkv<k,v>> () {
+  var stack := Nil // : list<bbtree<k,v>>
+  var curr := tree
+  var cont := True
+  while { match((stack, curr)) {
+            (Nil, Tip) -> False
+            _ -> cont
+        }
+  } {
+    while { match(curr) {
+              Tip -> False
+              Node(nl, _, _, _, _) -> {
+                stack := Cons(curr, stack)
+                curr := nl
+                cont
+              }
+            }
+    } {}
+    match(stack) {
+      Cons(Node(_, nr, _, nk, nv)) -> {
+        cont := yield(Keyval(nk, nv))
+        curr := nr
+      }
+      _ -> ()
+    }
+  }
+#  match(tree) {
+#    Node(tl, tr, _, tk, tv) -> {
+#      inorder(tl)
+#      yield(Keyval(tk, tv))
+#      inorder(tr)
+#    }
+#    Tip -> ()
+#  }
+}
+
+public fun revorder(tree: bbtree<k,v>) : <div,yieldkv<k,v>> () {
+  match(tree) {
+    Node(tl, tr, _, tk, tv) -> {
+      inorder(tr)
+      yield(Keyval(tk, tv))
+      inorder(tl)
+    }
+    Tip -> ()
+  }
+}
+
 // #############################################################################
 // BBTree of int keys and generic values
 
