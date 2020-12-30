@@ -177,6 +177,24 @@ public fun bbt-delete(tree: bbtree<k,v>, key: k): cmp<k> bbtree<k,v> {
   }
 }
 
+
+// ##### map & fold #####
+
+public fun fold(t: bbtree<k,v>, b: b, f: (k, v, b) -> b): b {
+  match (t) {
+    Tip                     -> b
+    Node(tl, tr, _, tk, tv) -> tr.fold(f(tk, tv, tl.fold(b, f)), f)
+  }
+}
+
+public fun map(t: bbtree<k,v>, f: (k, v) -> b): bbtree<k,b> {
+  match (t) {
+    Tip                     -> Tip
+    Node(tl, tr, _, tk, tv) -> new-node(map(tl, f), tk, f(tk, tv), map(tr, f))
+  }
+}
+
+
 // ##### iterators #####
 
 public struct keyval<k,v> {
