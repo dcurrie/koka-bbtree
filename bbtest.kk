@@ -80,15 +80,14 @@ fun show-a-couple-prng(): <exn,div,random,istate<int>> string {
     + " " + prng-int(10).show // + " " + prng-int(10).show // uncomment to kill koka
     + " " + x.show + " " + y.show
 }
-fun istate-test(): <exn,div,random,istate<int>> string {
+fun istate-test(): <exn,div,random> string { // exn,div,random,istate<int>
     istate(100, -9, show-a-couple-prng)
 }
 public fun main() {
   val bbt0: bbtree<int,int> = Tip
   val bbt1 = bbt-ofint-insert(bbt0, 1, -1)
   val x = bbt-ofint-lookup(bbt1, 1, 42)
-  println("A random number is "
-    + pseudo-random(7, fn() { istate(100, -9, show-a-couple-prng) }))
+  println("A random number is " + pseudo-random(7, istate-test))
   println("The number is " + x.show)
   println("The tree is " +
            (if ( is-ofint-ordered(bbt1, -99999999999) ) { "ordered" }

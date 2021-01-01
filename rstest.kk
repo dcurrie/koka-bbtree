@@ -26,24 +26,23 @@ fun show-a-couple-prng(): <exn,div,random,istate<int>> string {
     + " " + x.show
 }
 
-fun istate-test(): <exn,div,random,istate<int>> string {
+fun istate-test(): <exn,div,random> string {
     istate(100, -9, show-a-couple-prng)
 }
 
-// fails
-// public fun main() {
-//   println("Random numbers " + pseudo-random(7, istate-test))
-// }
+public fun main() {
+  println("Random numbers " + pseudo-random(7, istate-test))
+}
 
-// fails
+// works, too
 // public fun main() {
-//   fun istate-test(): <exn,div,random,istate<int>> string {
+//   fun istate-test(): <exn,div,random> string { // ,istate<int>
 //     istate(100, -9, show-a-couple-prng)
 //   }
 //   println("Random numbers " + pseudo-random(7, istate-test))
 // }
 
 // works
-public fun main() {
-  println("Random numbers " + pseudo-random(7, fn() { istate(100, -9, show-a-couple-prng) }))
-}
+//public fun main() {
+//  println("Random numbers " + pseudo-random(7, fn() { istate(100, -9, show-a-couple-prng) }))
+//}
