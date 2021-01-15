@@ -1,6 +1,31 @@
 import bbtree
-import std/num/int32
+import kunit
+
+import std/time/timer
 import std/num/random
+
+// is-balanced() returns size in nodes or -1 for error
+//
+fun is-balanced(node: bbtree<k,v>): div int {
+  fun isbal(tl: bbtree<k,v>, tr: bbtree<k,v>, sz: int) {
+    val sl = tree-size(tl)
+    val sr = tree-size(tr)
+    if (sz != (sl + 1 + sr)) return -1
+    if ((sl + sr) > 1) {
+      if (sr > (omega * sl)) return -1
+      if (sl > (omega * sr)) return -1
+    }
+    val slb = is-balanced(tl)
+    val srb = is-balanced(tr)
+    if ((slb < 0) || (sl != slb)) return -1
+    if ((srb < 0) || (sr != srb)) return -1
+    sz
+  }
+  match (node) {
+    Tip                    -> 0
+    Node(tl, tr, tz, _, _) -> isbal(tl, tr, tz)
+  }
+}
 
 /* works, and short circuit for failure case, but effecty
 fun is-ordered(tree: bbtree<k,v>, min: k): <div,cmp<k>> bool {
@@ -36,25 +61,6 @@ fun is-ofint-ordered(tree: bbtree<int,v>, min: int): bool {
   match(tree.fold((True, min), ok)) { (ord,_) -> ord }
 }
 
-// effect prng {
-//   fun next() : int
-//   fun seed(x : int) : ()
-// }
-//
-// fun random-test(init: int, action: () -> <prng|e> b) : e b {
-//   var state := init
-//   with fun seed(x) { state := x }
-//   with fun next() {
-//     state := state ^ (state >> 12) // a
-//     state := state ^ (state << 25) // b
-//     state := state ^ (state >> 27) // c
-//     return state * 2685821657736338717
-//   }
-//   action()
-// }
-//
-// pseudo-random( seed : int, action : () -> <random|e> a) : e a {
-
 effect istate<a> {
   fun get(i: int) : a
   fun set(i: int, x : a) : ()
@@ -72,24 +78,56 @@ fun istate(size: int, init: a, action: () -> <istate<a>,exn,div|e> b ) : <exn,di
 fun prng-int(n: int): random int {
   abs(random-int()) % n
 }
-fun show-a-couple-prng(): <exn,div,random,istate<int>> string {
-  val x : int = get(prng-int(10))
-  set(13,42)
-  val y : int = get(13)
-  random-int().show + " " + random-int().show + " " + random-int().show
-    + " " + prng-int(10).show // + " " + prng-int(10).show // uncomment to kill koka
-    + " " + x.show + " " + y.show
-}
-fun istate-test(): <exn,div,random> string { // exn,div,random,istate<int>
-    istate(100, -9, show-a-couple-prng)
-}
-public fun main() {
+
+// fun show-a-couple-prng(): <exn,div,random,istate<int>> string {
+//   val x : int = get(prng-int(10))
+//   set(13,42)
+//   val y : int = get(13)
+//   random-int().show + " " + random-int().show + " " + random-int().show
+//     + " " + prng-int(10).show // + " " + prng-int(10).show // uncomment to kill koka
+//     + " " + x.show + " " + y.show
+// }
+
+// fun istate-test(): <exn,div,random> string {
+//     istate(100, -9, show-a-couple-prng)
+// }
+//
+// public fun main() {
+//   val bbt0: bbtree<int,int> = Tip
+//   val bbt1 = bbt-ofint-insert(bbt0, 1, -1)
+//   val x = bbt-ofint-lookup(bbt1, 1, 42)
+//   println("A random number is " + pseudo-random(7, istate-test))
+//   println("The number is " + x.show)
+//   println("The tree is " +
+//            (if ( is-ofint-ordered(bbt1, -99999999999) ) { "ordered" }
+//             else { "unordered" }))
+// }
+
+
+val tc1 = Testcase("Tc one", fn (): <div,exn,ustate> bool {
   val bbt0: bbtree<int,int> = Tip
+  ku-assert-true(is-ofint-ordered(bbt0,-1))
+  ku-assert-eqint(tree-size(bbt0), 0)
+  ku-assert-true(is-balanced(bbt0) >= 0)
   val bbt1 = bbt-ofint-insert(bbt0, 1, -1)
-  val x = bbt-ofint-lookup(bbt1, 1, 42)
-  println("A random number is " + pseudo-random(7, istate-test))
-  println("The number is " + x.show)
-  println("The tree is " +
-           (if ( is-ofint-ordered(bbt1, -99999999999) ) { "ordered" }
-            else { "unordered" }))
+  ku-assert-true(is-ofint-ordered(bbt1,-999))
+  ku-assert-eqint(tree-size(bbt1), 1)
+  ku-assert-true(is-balanced(bbt1) >= 0)
+  True
+})
+
+val tc2 = Testcase("Tc two", fn (): <div,exn,ustate> bool {
+  val y = 5 * 8
+  val z = vector(3,0)
+  ku-assert-eqint(40, y)
+  //ku-assert-eqint(0, z[y]) // exn
+  True
+})
+
+public fun main() {
+  fun runalltcs() {
+    runtestcase(tc1)
+    runtestcase(tc2)
+  }
+  ustate(runalltcs)
 }

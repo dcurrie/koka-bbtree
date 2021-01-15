@@ -1,8 +1,8 @@
 module bbtree
 
 // balance criteria
-private val omega = 3
-private val alpha = 2
+public val omega = 3 // public for unit test
+val alpha = 2
 
 public effect cmp<k> {
   fun cmp(x: k, y: k) : order

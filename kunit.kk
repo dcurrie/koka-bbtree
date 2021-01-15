@@ -21,7 +21,7 @@ fun ustate(action: () -> <ustate,exn,div|e> b ) : <exn,div|e> b {
 
 struct testcase {
   name: string
-  func: () -> <exn,ustate> bool
+  func: () -> <ustate,exn,div> bool // <exn,ustate>
 }
 
 fun report-ng(tc: testcase, msg: string) {
@@ -37,9 +37,18 @@ fun ku-assert-eqint(expected: int, actual: int): <exn,ustate> () {
   }
 }
 
+fun ku-assert-true(actual: bool): <exn,ustate> () {
+  if (! actual) {
+    throw(Error(Exception("Expected: true", ExnAssert)))
+  }
+  else {
+    inc-ok()
+  }
+}
+
 //
 
-fun runtestcase(tc: testcase): <console,ustate> () {
+fun runtestcase(tc: testcase): <console,ustate,div> () {
   enter-tc(tc.name)
   match(try(tc.func)) {
     Ok(result) -> {
