@@ -53,6 +53,7 @@ dkms.conf
 
 # scratch files
 scratch.txt
+scratch/
 
 # Koka output
 out/

@@ -65,5 +65,5 @@ fun runtestcase(tc: testcase): <console,ustate,div> () {
     }
   }
   val (_, oks, ngs) = report()
-  println(tc.name + " Passed: " + oks.show + " Failed: " + ngs.show)
+  println("Passed: " + oks.show + " Failed: " + ngs.show + " - " + tc.name)
 }

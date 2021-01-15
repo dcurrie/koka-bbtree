@@ -27,6 +27,11 @@ fun is-balanced(node: bbtree<k,v>): div int {
   }
 }
 
+fun is-well-balanced(node: bbtree<k,v>): div bool {
+  val z = is-balanced(node)
+  z >= 0 && z == tree-size(node)
+}
+
 /* works, and short circuit for failure case, but effecty
 fun is-ordered(tree: bbtree<k,v>, min: k): <div,cmp<k>> bool {
   var last := min
@@ -104,23 +109,37 @@ fun prng-int(n: int): random int {
 // }
 
 
-val tc1 = Testcase("Tc one", fn (): <div,exn,ustate> bool {
+val tc1 = Testcase("empty and one element bb trees balanced", fn (): <div,exn,ustate> bool {
   val bbt0: bbtree<int,int> = Tip
   ku-assert-true(is-ofint-ordered(bbt0,-1))
   ku-assert-eqint(tree-size(bbt0), 0)
-  ku-assert-true(is-balanced(bbt0) >= 0)
+  ku-assert-true(is-well-balanced(bbt0))
   val bbt1 = bbt-ofint-insert(bbt0, 1, -1)
   ku-assert-true(is-ofint-ordered(bbt1,-999))
   ku-assert-eqint(tree-size(bbt1), 1)
-  ku-assert-true(is-balanced(bbt1) >= 0)
+  ku-assert-true(is-well-balanced(bbt1))
   True
 })
 
-val tc2 = Testcase("Tc two", fn (): <div,exn,ustate> bool {
-  val y = 5 * 8
-  val z = vector(3,0)
-  ku-assert-eqint(40, y)
-  //ku-assert-eqint(0, z[y]) // exn
+val tc2 = Testcase("bbtree insert, lookup, ordered, balanced", fn (): <div,exn,ustate> bool {
+  val bbt0: bbtree<int,int> = Tip
+  val bbt1 = bbt-ofint-insert(bbt0, 1, -1)
+  val res = bbt-ofint-lookup(bbt1, 1, -42)
+  ku-assert-eqint(res, -1)
+  val rez = bbt-ofint-lookup(bbt1, 3, -42)
+  ku-assert-eqint(rez, -42)
+  ku-assert-true(is-ofint-ordered(bbt1,-999))
+  ku-assert-eqint(tree-size(bbt1), 1)
+  ku-assert-true(is-well-balanced(bbt1))
+  True
+})
+
+val tc3 = Testcase("bbtree insert 21 items, ordered, balanced", fn (): <div,exn,ustate> bool {
+  var bbtn: bbtree<int,int> := Tip
+  for(1,21) fn(i) { bbtn := bbt-ofint-insert(bbtn, i, -1) }
+  ku-assert-true(is-ofint-ordered(bbtn,-999))
+  ku-assert-eqint(tree-size(bbtn), 21)
+  ku-assert-true(is-well-balanced(bbtn))
   True
 })
 
@@ -128,6 +147,7 @@ public fun main() {
   fun runalltcs() {
     runtestcase(tc1)
     runtestcase(tc2)
+    runtestcase(tc3)
   }
   ustate(runalltcs)
 }
